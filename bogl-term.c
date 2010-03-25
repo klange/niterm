@@ -545,15 +545,15 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
                     {
                     	if(!term_is_clear(term, i))
                     	{
-	                    term->dirty[i] = 1;
-	                    term->screen[i] = ' ';
-	                    term->screenfg[i] = term->fg;
-	                    term->screenbg[i] = term->bg;
-	                    term->screenul[i] = 0;
-	                    term->screenbd[i] = 0;
-	                }
-                        free (term->cchars[i]);
-                        term->cchars[i] = 0;
+	                        term->dirty[i] = 1;
+	                        term->screen[i] = ' ';
+	                        term->screenfg[i] = term->fg;
+	                        term->screenbg[i] = term->bg;
+	                        term->screenul[i] = 0;
+	                        term->screenbd[i] = 0;
+	                    }
+                      free (term->cchars[i]);
+                      term->cchars[i] = 0;
                     }
                 }
                 else if (term->state == 1 && term->arg[0] == 0)
