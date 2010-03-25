@@ -152,13 +152,12 @@ static void dirty_scroll(struct bogl_term *term)
     
     for(y = 0; y < term->ysize-1; y++)
     	for(x=0; x < term->xsize; x++)
-    {
-      int this_point = SCR(x,y);
-      int next_point = SCR(x,y+1);
-      if (term->dirty[this_point]
-	  || !term_match (term, this_point, next_point))
-	term->dirty[next_point] = 1;
-    }
+      {
+        int this_point = SCR(x,y);
+        int next_point = SCR(x,y+1);
+        if (term->dirty[this_point] || !term_match (term, this_point, next_point))
+          term->dirty[next_point] = 1;
+      }
 }
 
 /* We are backscrolling so anything which isn't the same as the spot
@@ -170,13 +169,12 @@ static void dirty_backscroll(struct bogl_term *term)
     
     for(y = 1; y < term->ysize; y++)
     	for(x=0; x < term->xsize; x++)
-    {
-      int this_point = SCR(x,y);
-      int next_point = SCR(x,y-1);
-      if (term->dirty[this_point]
-	  || !term_match (term, this_point, next_point))
-	term->dirty[next_point] = 1;
-    }
+      {
+        int this_point = SCR(x,y);
+        int next_point = SCR(x,y-1);
+        if (term->dirty[this_point] || !term_match (term, this_point, next_point))
+          term->dirty[next_point] = 1;
+      }
 }
 
 static void
@@ -257,11 +255,11 @@ show_cursor (struct bogl_term *term, int show)
 
     if (term->screen[i])
     {
-//        if ((show && !term->rev) || (!show && term->rev))
-//            fg = term->screenbg[i], bg = term->screenfg[i];
-//        else
+        //if ((show && !term->rev) || (!show && term->rev))
+        //    fg = term->screenbg[i], bg = term->screenfg[i];
+        //else
             fg = term->screenfg[i], bg = term->screenbg[i];
-//        put_char(term, x, term->ypos, term->screen[i], term->cchars[i], fg, bg, term->screenul[i], term->screenbd[i]);
+        //put_char(term, x, term->ypos, term->screen[i], term->cchars[i], fg, bg, term->screenul[i], term->screenbd[i]);
         if (show)
             put_char(term, x, term->ypos, term->screen[i], term->cchars[i], fg, bg, 1, term->screenbd[i]);
         term->dirty[SCR(x, term->ypos)] = 1;
@@ -296,7 +294,7 @@ clear_right (struct bogl_term *term)
     if(term->screen[i + j] != ' ')
     {
     	term->dirty[i + j] = 1;
-        term->screen[i + j] = ' ';
+      term->screen[i + j] = ' ';
     }
   }
 }
@@ -328,38 +326,38 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
     k = 0;
     while (1)
     {
-	s += k;
-	n -= k;
+	      s += k;
+	      n -= k;
 
-	/* The n <= 0 check was originally only necessary because of a bug
-	   (?) in glibc 2.2.3, as opposed to libiconv.  glibc will
-	   successfully convert a zero-length string.  It is also the only
-	   exit point from this loop when we run out of characters, whether
-	   we successfully decode a zero-length string or error out.  The
-	   exception is an incomplete multibyte sequence, just below.  */
-	if (n <= 0)
-	    break;
+	      /* The n <= 0 check was originally only necessary because of a bug
+	         (?) in glibc 2.2.3, as opposed to libiconv.  glibc will
+	         successfully convert a zero-length string.  It is also the only
+	         exit point from this loop when we run out of characters, whether
+	         we successfully decode a zero-length string or error out.  The
+	         exception is an incomplete multibyte sequence, just below.  */
+	      if (n <= 0)
+	          break;
 
-	k = mbrtowc (&wc, s, n, &term->ps);
+	      k = mbrtowc (&wc, s, n, &term->ps);
 
-	/* If we fail to write a character, skip forward one byte and continue.
-	   There's not much we can do to recover, but it's better than discarding
-	   the whole line.  */
-	if (k == (size_t) -1)
-	{
-	    k = 1;
-	    /* The mbrtowc documentation suggests that we could use mbrtowc
-	       to reset term->ps, but that doesn't work in practice; ps is in
-	       an undefined state which appears to be the illegal state to make
-	       the reset call in.  Use memset.  */
-	    memset (&term->ps, 0, sizeof (term->ps));
-	    continue;
-	}
-	else if (k == (size_t) -2)
-	{
-	    /* Incomplete character, so we exit and wait for more to arrive.  */
-	    break;
-	}
+	      /* If we fail to write a character, skip forward one byte and continue.
+	         There's not much we can do to recover, but it's better than discarding
+	         the whole line.  */
+	      if (k == (size_t) -1)
+	      {
+	          k = 1;
+	          /* The mbrtowc documentation suggests that we could use mbrtowc
+	             to reset term->ps, but that doesn't work in practice; ps is in
+	             an undefined state which appears to be the illegal state to make
+	             the reset call in.  Use memset.  */
+	          memset (&term->ps, 0, sizeof (term->ps));
+	          continue;
+	      }
+	      else if (k == (size_t) -2)
+	      {
+	          /* Incomplete character, so we exit and wait for more to arrive.  */
+	          break;
+	      }
 
         if (!k)
             k = 1;
@@ -386,14 +384,14 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
             target = (term->xpos / 8) * 8 + 8;
             while(term->xpos < target)
             {
-	        if (term->xpos >= term->xsize)
-	        {
-	            term->xpos = 0;
-	            cursor_down (term);
-	            break;
-	        }
-	        bogl_term_out(term, " ", 1);
-	    }
+	              if (term->xpos >= term->xsize)
+	              {
+	                  term->xpos = 0;
+	                  cursor_down (term);
+	                  break;
+	              }
+	              bogl_term_out(term, " ", 1);
+	          }
             term->state = 0;
             continue;
         }
@@ -412,17 +410,17 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
             continue;
         }
 
-	if (wc == 14)
-	{
-	    term->acs = 1;
-	    continue;
-	}
+	      if (wc == 14)
+	      {
+	          term->acs = 1;
+	          continue;
+	      }
 
-	if (wc == 15)
-	{
-	    term->acs = 0;
-	    continue;
-	}
+	      if (wc == 15)
+	      {
+	          term->acs = 0;
+	          continue;
+	      }
 
         if (wc == 27)
         {                       /* ESC = \E */
@@ -560,16 +558,16 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
                 }
                 else if (term->state == 1 && term->arg[0] == 0)
                 {
-		  for (x = term->xpos; x < term->xsize; x++)
-		    term_clear_one (term, SCR (x, term->ypos));
+		              for (x = term->xpos; x < term->xsize; x++)
+		                  term_clear_one (term, SCR (x, term->ypos));
 
-		  for (y = term->ypos + 1; y < term->ysize; y++)
-		    for (x = 0; x < term->xsize; x++)
-		      term_clear_one (term, SCR (x, y));
+		              for (y = term->ypos + 1; y < term->ysize; y++)
+		                for (x = 0; x < term->xsize; x++)
+		                  term_clear_one (term, SCR (x, y));
 
-		  term->state = 0;
-		  continue;
-		}
+		              term->state = 0;
+		              continue;
+		            }
             }
 
             if (wc == 'K')
@@ -647,56 +645,56 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
             continue;
         }
 
-	use_acs = 0;
-	if (term->acs)
-	{
-            /* FIXME: If we are using a non-UTF-8 locale, the wcwidth
-               call below will almost certainly fail.  We should have
-               hardcoded results to fall back on in that case.  This
-               will probably be fixed when I make this code drastically
-               less dependent on mbrtowc and wctomb, which I really
-               haven't figured out how to do yet.  They aren't really
-               appropriate for a terminal emulator to be using!  */
-	    switch (wc)
-	    {
-	    case 'q':
-	      wc = 0x2500;
-	      use_acs = 1;
-	      break;
-	    case 'j':
-	      wc = 0x2518;
-	      use_acs = 1;
-	      break;
-	    case 'x':
-	      wc = 0x2502;
-	      use_acs = 1;
-	      break;
-	    case 'a':
-	      wc = 0x2591;
-	      use_acs = 1;
-	      break;
-	    case 'm':
-	      wc = 0x2514;
-	      use_acs = 1;
-	      break;
-	    case 'l':
-	      wc = 0x250c;
-	      use_acs = 1;
-	      break;
-	    case 'k':
-	      wc = 0x2510;
-	      use_acs = 1;
-	      break;
-	    case 'u':
-	      wc = 0x2524;
-	      use_acs = 1;
-	      break;
-	    case 't':
-	      wc = 0x251c;
-	      use_acs = 1;
-	      break;
-	    }
-	}
+	      use_acs = 0;
+	      if (term->acs)
+	      {
+                  /* FIXME: If we are using a non-UTF-8 locale, the wcwidth
+                     call below will almost certainly fail.  We should have
+                     hardcoded results to fall back on in that case.  This
+                     will probably be fixed when I make this code drastically
+                     less dependent on mbrtowc and wctomb, which I really
+                     haven't figured out how to do yet.  They aren't really
+                     appropriate for a terminal emulator to be using!  */
+	          switch (wc)
+	          {
+	          case 'q':
+	            wc = 0x2500;
+	            use_acs = 1;
+	            break;
+	          case 'j':
+	            wc = 0x2518;
+	            use_acs = 1;
+	            break;
+	          case 'x':
+	            wc = 0x2502;
+	            use_acs = 1;
+	            break;
+	          case 'a':
+	            wc = 0x2591;
+	            use_acs = 1;
+	            break;
+	          case 'm':
+	            wc = 0x2514;
+	            use_acs = 1;
+	            break;
+	          case 'l':
+	            wc = 0x250c;
+	            use_acs = 1;
+	            break;
+	          case 'k':
+	            wc = 0x2510;
+	            use_acs = 1;
+	            break;
+	          case 'u':
+	            wc = 0x2524;
+	            use_acs = 1;
+	            break;
+	          case 't':
+	            wc = 0x251c;
+	            use_acs = 1;
+	            break;
+	          }
+	      }
 
 	/* At this point, if we can not decode a character because of ACS,
 	   replace it with a space to minimize graphical corruption.  */
@@ -714,11 +712,6 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
         kk = wctomb (buf, wc);
         if (kk == -1)           /* impossible */
             continue;
-#if 0
-        {
-            write (2, "p", 1);
-        }
-#endif
 
         f = term->rev ? term->bg : term->fg;
         b = term->rev ? term->fg : term->bg;
@@ -809,28 +802,27 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
                 term->xpos += 1;
                 clear_right (term);
             }
-	    i = SCR (term->xp, term->yp);
-	    if (bogl_in_font(term->font, wc)) {
-	    	if (term->cchars[i]) {
-		    int ccw = wcslen(term->cchars[i]);
-		    wchar_t *newcchars;
+	          i = SCR (term->xp, term->yp);
+	          if (bogl_in_font(term->font, wc)) {
+	          	if (term->cchars[i]) {
+		              int ccw = wcslen(term->cchars[i]);
+		              wchar_t *newcchars;
 
-		    newcchars = realloc(term->cchars[i], (ccw+2) * sizeof(wchar_t));
-		    if (newcchars) {
-		    	term->cchars[i] = newcchars;
-			term->cchars[i][ccw] = wc;
-			term->cchars[i][ccw+1] = 0;
-		    }
-	    	}
-		else {
-		    term->cchars[i] = malloc(2 * sizeof(wchar_t));
-		    if (term->cchars[i]) {
-		    	term->cchars[i][0] = wc;
-			term->cchars[i][1] = 0;
-		    }
-		}
-		term->dirty[i] = 1;
-	    }
+		              newcchars = realloc(term->cchars[i], (ccw+2) * sizeof(wchar_t));
+		              if (newcchars) {
+		                	term->cchars[i] = newcchars;
+			                term->cchars[i][ccw] = wc;
+			                term->cchars[i][ccw+1] = 0;
+		              }
+	          	} else {
+		              term->cchars[i] = malloc(2 * sizeof(wchar_t));
+		              if (term->cchars[i]) {
+		                	term->cchars[i][0] = wc;
+			                term->cchars[i][1] = 0;
+		              }
+		          }
+		          term->dirty[i] = 1;
+	          }
         }
     }
 
