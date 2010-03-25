@@ -30,3 +30,6 @@ install: all
 	install -m644 niterm.1 $(DESTDIR)/usr/share/man/man1
 	install -d $(DESTDIR)/usr/share/terminfo
 	tic -o$(DESTDIR)/usr/share/terminfo niterm.ti
+	install -d $(DESTDIR)/usr/share/niterm
+	install -m644 unifont.bgf.gz $(DESTDIR)/usr/share/niterm
+	gzip -d -f $(DESTDIR)/usr/share/niterm/unifont.bgf.gz

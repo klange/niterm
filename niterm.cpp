@@ -249,7 +249,10 @@ int main(int argc, char *argv[])
   int i;
   char o = ' ';
   int pending = 0;
+  int login_shell = 0;
 
+  font_name = "/usr/share/niterm/unifont.bgf"; // FIXME: This is stupid
+  
   // XXX: Replace this with a better method
   for (i = 1 ; i < argc ; ++i) {
       int done = 0;
@@ -259,6 +262,10 @@ int main(int argc, char *argv[])
               case 'f':
               case 'l':
                   o = argv[i][1];
+                  break;
+
+              case 's':
+                  login_shell = 1;
                   break;
 
               case '-':
@@ -275,10 +282,14 @@ int main(int argc, char *argv[])
                     command = argv[i];
                     break;
 
+                case 's':
+                    login_shell = 1;
+                    break;
+
                 case 'f':
                     font_name = argv[i];
                     o = ' ';
-                    break; // TODO: Do this automatically!
+                    break;
 
                 case 'l':
                     locale = argv[i];
@@ -323,7 +334,13 @@ int main(int argc, char *argv[])
     exit(1);
   }
 
-  if (command) {
+  // XXX: This is probably not the best way to do this now
+  //      that we're in C++...
+  if (login_shell) {
+    command_args = (char **)xmalloc(2 * sizeof *command_args);
+    command_args[0] = "login";
+    command_args[1] = NULL;
+  } else if (command) {
     command_args = (char **)xmalloc(2 * sizeof *command_args);
     command_args[0] = command;
     command_args[1] = NULL;
