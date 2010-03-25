@@ -1,0 +1,5 @@
+2010-03-25  Kevin Lange        <lange7@acm.uiuc.du>
+
+    * Forked to form niterm, a Japanese terminal
+      emulator with a built-in input method
+    * Remove unused dependencies

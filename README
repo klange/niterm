@@ -1,0 +1,3 @@
+This is `niterm`, a complete Japanese framebuffer terminal for Linux, forked from
+bogl-bterm. New in niterm is a complete Japanese input method, using Anthy for
+candidate selection.
