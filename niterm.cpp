@@ -177,7 +177,7 @@ void spawn_shell(int ptyfd, int ttyfd, char * const *command_args)
     return;
   }
 
-  setenv("TERM", "bterm", 1);
+  setenv("TERM", "niterm", 1);
 
   close(ptyfd);
 
