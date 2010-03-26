@@ -40,6 +40,7 @@ extern "C" {
 #include <bogl/bogl.h>
 #include "bogl-bgf.h"
 #include "bogl-term.h"
+#include <anthy/anthy.h>
 }
 #include "niterm-tables.h"
 
@@ -375,14 +376,23 @@ int main(int argc, char *argv[])
   //term->def_fg = 7;
   //term->def_bg = 0;
   
-  int ime_mode = 0;
-  std::string ime_buf[1024];
-  int l = 0;
-  int clear_screen = 0;
-  int ime_index = 0;
-  std::string ime_candidates[1024][100];
-  int ime_cand_ind[1024];
-  int ime_cand_count[1024];
+  int ime_mode = 0;                       // IME mode (0 = off, 1 = input, 2 = candidate selection)
+  std::string ime_buf[1024];              // IME buffer (input, segments)
+  int l = 0;                              // Length of IME buffer
+  int clear_screen = 0;                   // Clear from end of line on next IME write
+  int ime_index = 0;                      // IME selected segment index
+  std::string ime_candidates[1024][100];  // IME candidates list (per segment)
+  int ime_cand_ind[1024];                 // IME candidate index (per segment)
+  int ime_cand_count[1024];               // IME candidate count (per segment)
+
+  anthy_context * ac; // Anthy context
+  if (anthy_init()) { // Initialize anthy
+      printf("Failed to init anthy, could not create terminal!\n");
+      exit(1);
+  }
+  anthy_set_personality("");  // Set default `personality`
+  ac = anthy_create_context(); // Initialize context
+  anthy_context_set_encoding(ac, ANTHY_UTF8_ENCODING); // Set for Unicode
   
   for (;;) {
     fd_set fds;
@@ -544,39 +554,29 @@ int main(int argc, char *argv[])
                 ime_index = 0;
                 ime_mode = 2;
                 std::string candidate_string = "";
-                for (ret = 0; ret < 4; ret++) {
+                for (ret = 0; ret < l + 1; ret++) {
                     candidate_string = candidate_string + ime_buf[ret];
                 }
-                // TODO: Split candidate string with Anthy
-                // Load each candidate into an ime_buf location
-                // Here, we are splitting a few characters in to simulate this.
-                ime_buf[0] = candidate_string;
-                candidate_string = "";
-                for (ret = 4; ret < l + 1; ret++) {
-                    candidate_string = candidate_string + ime_buf[ret];
+                anthy_set_string(ac, candidate_string.c_str());
+                anthy_conv_stat *stats = new anthy_conv_stat();
+                anthy_get_stat(ac, stats);
+                for (ret = 0; ret < stats->nr_segment; ret++) {
+                  char conv_buf[1024];
+                  anthy_segment_stat *s_stats = new anthy_segment_stat();
+                  anthy_get_segment(ac, ret, 0, conv_buf, 1024);
+                  anthy_get_segment_stat(ac, ret, s_stats);
+                  ime_buf[ret] = conv_buf;
+                  // Most likely candidate is now loaded directly
+                  ime_cand_count[ret] = s_stats->nr_candidate;
+                  for (int k = 0; k < ime_cand_count[ret] - 1; k++) {
+                    anthy_get_segment(ac, ret, k + 1, conv_buf, 1024);
+                    ime_candidates[ret][k] = conv_buf;
+                  }
+                  ime_candidates[ret][ime_cand_count[ret]-1] = ime_buf[ret];
                 }
-                ime_buf[1] = candidate_string;
-                l = 2; // l = split count
+                l = stats->nr_segment;
                 for (int clr=l;clr<1024;clr++)
                   ime_buf[clr] = "";
-                for (int clr=0;clr<1024;clr++) {
-                  for (int clr2=0;clr2<100;clr2++)
-                    ime_candidates[clr][clr2] = "";
-                  ime_cand_count[clr] = 0;
-                }
-                for (int clr=0;clr<l;clr++) {
-                    ime_candidates[clr][0] = "Candidates";
-                    ime_candidates[clr][1] = "Go";
-                    ime_candidates[clr][2] = "Here!";
-                    ime_candidates[clr][3] = "...";
-                    ime_candidates[clr][4] = "~~~";
-                    ime_candidates[clr][5] = "Second page";
-                    ime_candidates[clr][6] = ime_buf[clr];
-                    ime_cand_count[clr] = 7;
-                    ime_cand_ind[clr] = 0;
-                }
-                //l++;
-                //ime_buf[l] = "";
               } else { // Else, add character
                 std::string conv_test;
                 int old_l = l;   // old length

@@ -15,7 +15,7 @@ bogl-bgf.o: bogl-bgf.c bogl-bgf.h
 	$(CC) $(ALLCFLAGS) -o bogl-bgf.o -c bogl-bgf.c
 
 niterm: niterm.cpp bogl-term.o bogl-bgf.o
-	g++ -Wall -lbogl -o niterm niterm.cpp bogl-term.o bogl-bgf.o
+	g++ -Wall -lanthy -lbogl -o niterm niterm.cpp bogl-term.o bogl-bgf.o
 
 clean: 
 	rm -rf niterm *.o lang.h tmp.*.c $(LIB)
