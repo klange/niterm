@@ -1,7 +1,7 @@
 /* niterm - Forked from bogl-bterm
 
    Copyright 2010 Kevin Lange <lange7@acm.uiuc.edu>
-    
+   
    BOGL - Ben's Own Graphics Library.
    Originally written by Edmund GRIMLEY EVANS <edmundo@rano.org>.
    Rendering design redone by Red Hat Inc, Alan Cox <alan@redhat.com>
@@ -380,6 +380,9 @@ int main(int argc, char *argv[])
   int l = 0;
   int clear_screen = 0;
   int ime_index = 0;
+  std::string ime_candidates[1024];
+  int ime_cand_ind = 0;
+  int ime_cand_count = 0;
   
   for (;;) {
     fd_set fds;
@@ -486,6 +489,7 @@ int main(int argc, char *argv[])
               if (ch == 91) {
                 j++;
                 ch = buf[j];
+                int old_index = ime_index;
                 if (ch == 67) {
                   ime_index++;
                   if (ime_index == l) {
@@ -497,7 +501,21 @@ int main(int argc, char *argv[])
                     ime_index = l - 1;
                   }
                 }
+                if (old_index != ime_index) {
+                    // XXX: RESET CANDIDATES!
+                    ime_cand_ind = 0;
+                }
               }
+              ret = 0;
+            } else if (ch == 32) {
+              // Space - set selected to current candidate
+              //       - increment candidate selection
+              ime_buf[ime_index] = ime_candidates[ime_cand_ind];
+              ime_cand_ind++;
+              if (ime_cand_ind == ime_cand_count) {
+                ime_cand_ind = 0;
+              }
+              clear_screen = 1;
               ret = 0;
             }
           } else if (ime_mode == 1) { // Read characters for IME
@@ -546,6 +564,17 @@ int main(int argc, char *argv[])
                 l = 2; // l = split count
                 for (int clr=l;clr<1024;clr++)
                   ime_buf[clr] = "";
+                for (int clr=0;clr<1024;clr++)
+                  ime_candidates[clr] = "";
+                ime_candidates[0] = "Candidates";
+                ime_candidates[1] = "Go";
+                ime_candidates[2] = "Here!";
+                ime_candidates[3] = "...";
+                ime_candidates[4] = "~~~";
+                ime_candidates[5] = "Second page";
+                ime_candidates[6] = ime_buf[0];
+                ime_cand_count = 7;
+                ime_cand_ind = 0;
                 //l++;
                 //ime_buf[l] = "";
               } else { // Else, add character
@@ -602,12 +631,14 @@ int main(int argc, char *argv[])
         // Print out the IME buffer
         for (ret = 0; ret < l + 1; ret++) {
           if (ime_mode == 2 && ime_index == ret) {
+            // Reverse video for section selection
             sbuf = sprintf(tbuf, "%c[7m", 27);
             bogl_term_out(term, tbuf, sbuf);
           }
           sbuf = sprintf(tbuf, "%s", (char *)ime_buf[ret].c_str());
           bogl_term_out(term, tbuf, sbuf);
           if (ime_mode == 2 && ime_index == ret) {
+            // Unreverse video
             sbuf = sprintf(tbuf, "%c[27m", 27);
             bogl_term_out(term, tbuf, sbuf);
           }
@@ -621,6 +652,18 @@ int main(int argc, char *argv[])
         // Disable underline and restore the cursor
         sbuf = sprintf(tbuf, "%c[24m%c[u", 27, 27);
         bogl_term_out(term, tbuf, sbuf);
+        if (ime_mode == 2) {
+          // Display candidates, spaced
+          sbuf = sprintf(tbuf, "%c[B", 27);
+          bogl_term_out(term, tbuf, sbuf);
+          // Print canddiates
+          for (int k = ime_cand_ind; k < ime_cand_ind + 5 && k < ime_cand_count; k++) {
+            sbuf = sprintf(tbuf, "%s ", ime_candidates[k].c_str());
+            bogl_term_out(term, tbuf, sbuf);
+          }
+          sbuf = sprintf(tbuf, "%c[K%c[u", 27, 27);
+          bogl_term_out(term, tbuf, sbuf);
+        }
         ret = 0;
         pending = 1; // Force update
       }

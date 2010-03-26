@@ -534,6 +534,13 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
                 term->state = 0;
                 continue;
             }
+            
+            if (wc == 'B')
+            {
+                term->ypos++;
+                term->state = 0;
+                continue;
+            }
 
             if (wc == 'J')
             {                   /* clear=\E[H\E[2J */
