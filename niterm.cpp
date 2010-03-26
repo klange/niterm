@@ -380,9 +380,9 @@ int main(int argc, char *argv[])
   int l = 0;
   int clear_screen = 0;
   int ime_index = 0;
-  std::string ime_candidates[1024];
-  int ime_cand_ind = 0;
-  int ime_cand_count = 0;
+  std::string ime_candidates[1024][100];
+  int ime_cand_ind[1024];
+  int ime_cand_count[1024];
   
   for (;;) {
     fd_set fds;
@@ -489,7 +489,6 @@ int main(int argc, char *argv[])
               if (ch == 91) {
                 j++;
                 ch = buf[j];
-                int old_index = ime_index;
                 if (ch == 67) {
                   ime_index++;
                   if (ime_index == l) {
@@ -501,19 +500,15 @@ int main(int argc, char *argv[])
                     ime_index = l - 1;
                   }
                 }
-                if (old_index != ime_index) {
-                    // XXX: RESET CANDIDATES!
-                    ime_cand_ind = 0;
-                }
               }
               ret = 0;
             } else if (ch == 32) {
               // Space - set selected to current candidate
               //       - increment candidate selection
-              ime_buf[ime_index] = ime_candidates[ime_cand_ind];
-              ime_cand_ind++;
-              if (ime_cand_ind == ime_cand_count) {
-                ime_cand_ind = 0;
+              ime_buf[ime_index] = ime_candidates[ime_index][ime_cand_ind[ime_index]];
+              ime_cand_ind[ime_index]++;
+              if (ime_cand_ind[ime_index] == ime_cand_count[ime_index]) {
+                ime_cand_ind[ime_index] = 0;
               }
               clear_screen = 1;
               ret = 0;
@@ -564,17 +559,22 @@ int main(int argc, char *argv[])
                 l = 2; // l = split count
                 for (int clr=l;clr<1024;clr++)
                   ime_buf[clr] = "";
-                for (int clr=0;clr<1024;clr++)
-                  ime_candidates[clr] = "";
-                ime_candidates[0] = "Candidates";
-                ime_candidates[1] = "Go";
-                ime_candidates[2] = "Here!";
-                ime_candidates[3] = "...";
-                ime_candidates[4] = "~~~";
-                ime_candidates[5] = "Second page";
-                ime_candidates[6] = ime_buf[0];
-                ime_cand_count = 7;
-                ime_cand_ind = 0;
+                for (int clr=0;clr<1024;clr++) {
+                  for (int clr2=0;clr2<100;clr2++)
+                    ime_candidates[clr][clr2] = "";
+                  ime_cand_count[clr] = 0;
+                }
+                for (int clr=0;clr<l;clr++) {
+                    ime_candidates[clr][0] = "Candidates";
+                    ime_candidates[clr][1] = "Go";
+                    ime_candidates[clr][2] = "Here!";
+                    ime_candidates[clr][3] = "...";
+                    ime_candidates[clr][4] = "~~~";
+                    ime_candidates[clr][5] = "Second page";
+                    ime_candidates[clr][6] = ime_buf[clr];
+                    ime_cand_count[clr] = 7;
+                    ime_cand_ind[clr] = 0;
+                }
                 //l++;
                 //ime_buf[l] = "";
               } else { // Else, add character
@@ -657,8 +657,8 @@ int main(int argc, char *argv[])
           sbuf = sprintf(tbuf, "%c[B", 27);
           bogl_term_out(term, tbuf, sbuf);
           // Print canddiates
-          for (int k = ime_cand_ind; k < ime_cand_ind + 5 && k < ime_cand_count; k++) {
-            sbuf = sprintf(tbuf, "%s ", ime_candidates[k].c_str());
+          for (int k = ime_cand_ind[ime_index]; k < ime_cand_ind[ime_index] + 5 && k < ime_cand_count[ime_index]; k++) {
+            sbuf = sprintf(tbuf, "%s ", ime_candidates[ime_index][k].c_str());
             bogl_term_out(term, tbuf, sbuf);
           }
           sbuf = sprintf(tbuf, "%c[K%c[u", 27, 27);
