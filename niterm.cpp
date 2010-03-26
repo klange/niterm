@@ -379,6 +379,7 @@ int main(int argc, char *argv[])
   std::string ime_buf[1024];
   int l = 0;
   int clear_screen = 0;
+  int ime_index = 0;
   
   for (;;) {
     fd_set fds;
@@ -437,7 +438,7 @@ int main(int argc, char *argv[])
         for (j = 0; j < ret; j++) {
           char ch = buf[j];
           if ((int)ch == 0) { // Ctrl+Space produces the NULL character (\0)
-            if (ime_mode != 1) { // Enable the IME
+            if (ime_mode < 1) { // Enable the IME
               ret = 0;
               ime_mode = 1; // IME is enabled
               for (int clr=0;clr<1024;clr++) // Clear the IME buffer
@@ -457,7 +458,7 @@ int main(int argc, char *argv[])
               ime_mode = 0; // Disable IME
               break; // Stop collecting input
             }
-          } else if (ime_mode == 1 && (int)ch == 13) { // Return
+          } else if (ime_mode > 0 && (int)ch == 13) { // Return
             int outsize = 0;
             if (l > 0) { // Commit
               for (ret = 0; ret < l + 1; ret++) { 
@@ -468,12 +469,37 @@ int main(int argc, char *argv[])
               l = 0; // Reset the IME
               for (int clr=0;clr<1024;clr++)
                 ime_buf[clr] = "";
+              ime_mode = 1;
               break;
             } else { // Pass through '\r'
               outsize = sprintf(buf, "%c", ch);
               write(ptyfd, buf, outsize);
             }
             ret = 0;
+          } else if (ime_mode == 2) {
+            //char tsbuf[1024];
+            //int ssbuf = sprintf(tsbuf, ">>%i", ch);
+            //bogl_term_out(term, tsbuf, ssbuf);
+            if (ch == 27) {
+              j++;
+              ch = buf[j];
+              if (ch == 91) {
+                j++;
+                ch = buf[j];
+                if (ch == 67) {
+                  ime_index++;
+                  if (ime_index == l) {
+                    ime_index = 0;
+                  }
+                } else if (ch == 68) {
+                  ime_index--;
+                  if (ime_index < 0) {
+                    ime_index = l - 1;
+                  }
+                }
+              }
+              ret = 0;
+            }
           } else if (ime_mode == 1) { // Read characters for IME
             if (l < 1 && (ch < 33 || ch > 126)){
               // Pass non-display characters through if the buffer is empty
@@ -501,9 +527,27 @@ int main(int argc, char *argv[])
                   }
                 }
               } else if (ch == 32) {
-                // On space, skip this character or combination
-                l++;
-                ime_buf[l] = "";
+                // On space, switch to candidates selection
+                ime_index = 0;
+                ime_mode = 2;
+                std::string candidate_string = "";
+                for (ret = 0; ret < 4; ret++) {
+                    candidate_string = candidate_string + ime_buf[ret];
+                }
+                // TODO: Split candidate string with Anthy
+                // Load each candidate into an ime_buf location
+                // Here, we are splitting a few characters in to simulate this.
+                ime_buf[0] = candidate_string;
+                candidate_string = "";
+                for (ret = 4; ret < l + 1; ret++) {
+                    candidate_string = candidate_string + ime_buf[ret];
+                }
+                ime_buf[1] = candidate_string;
+                l = 2; // l = split count
+                for (int clr=l;clr<1024;clr++)
+                  ime_buf[clr] = "";
+                //l++;
+                //ime_buf[l] = "";
               } else { // Else, add character
                 std::string conv_test;
                 int old_l = l;   // old length
@@ -557,8 +601,16 @@ int main(int argc, char *argv[])
         bogl_term_out(term, tbuf, sbuf);
         // Print out the IME buffer
         for (ret = 0; ret < l + 1; ret++) {
+          if (ime_mode == 2 && ime_index == ret) {
+            sbuf = sprintf(tbuf, "%c[7m", 27);
+            bogl_term_out(term, tbuf, sbuf);
+          }
           sbuf = sprintf(tbuf, "%s", (char *)ime_buf[ret].c_str());
           bogl_term_out(term, tbuf, sbuf);
+          if (ime_mode == 2 && ime_index == ret) {
+            sbuf = sprintf(tbuf, "%c[27m", 27);
+            bogl_term_out(term, tbuf, sbuf);
+          }
         }
         // Clear if the rest of the line if needed
         if (clear_screen) {
