@@ -566,6 +566,7 @@ int main(int argc, char *argv[])
                   anthy_get_segment(ac, ret, 0, conv_buf, 1024);
                   anthy_get_segment_stat(ac, ret, s_stats);
                   ime_buf[ret] = conv_buf;
+                  ime_cand_ind[ret] = 0;
                   // Most likely candidate is now loaded directly
                   ime_cand_count[ret] = s_stats->nr_candidate;
                   for (int k = 0; k < ime_cand_count[ret] - 1; k++) {
