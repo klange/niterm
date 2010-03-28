@@ -1,5 +1,30 @@
-2010-03-25  Kevin Lange        <lange7@acm.uiuc.du>
+2010-03-27  Kevin Lange        <lange7@acm.uiuc.edu>
 
-    * Forked to form niterm, a Japanese terminal
-      emulator with a built-in input method
+    * fix up some ansi support, now things run clean without screen
+    * remove some debug output
+    * Fix various warnings and add some style to the Makefile
+    * remove unecessary line from Makefile
+
+2010-03-26  Kevin Lange        <lange7@acm.uiuc.edu>
+
+    * prep for candidate selection (still no anthy)
+    * add Curs Down; initial candidate selection system (still no Anthy)
+    * fix candidates list for multiple entries, one for each segment
+    * Integrate Anthy, terminal complete.
+    * New screenshot.
+    * fix candidate indexing issue
+      
+2010-03-25  Kevin Lange        <lange7@acm.uiuc.edu>
+
+    * Forked to form niterm, a Japanese terminal emulator with a built-in input method
     * Remove unused dependencies
+    * fix indenting in bogl-term.c
+    * fix indenting in niterm.cpp
+    * move conversion tables to a separate file
+    * setenv - term name is niterm
+    * add unifont bgf to package
+    * um, how about we gz that instead
+    * install unifont; default to /usr/share/niterm/unifont.bgf; add login shell default option
+    * fix some indenting
+    * adding screenshot to repo
+      
