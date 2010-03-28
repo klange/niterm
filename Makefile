@@ -27,7 +27,6 @@ clean:
 	@rm -rf niterm *.o lang.h tmp.*.c $(LIB)
 
 distclean: clean
-	rm -f $(LIB) .depend *~ .nfs*
 
 force:
 
