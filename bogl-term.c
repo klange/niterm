@@ -26,7 +26,7 @@
 
 #include <bogl/bogl.h>
 #include "bogl-term.h"
-
+#include <string.h>
 
 struct bogl_term *bogl_term_new(struct bogl_font *font)
 {
@@ -55,7 +55,7 @@ struct bogl_term *bogl_term_new(struct bogl_font *font)
   term->bold = 0;
   term->state = 0;
   term->cur_visible = 1;
-  memset(&term->ps, 0, sizeof(&term->ps));
+  memset((void *)&term->ps, 0, sizeof(&term->ps));
 
   term->screen = malloc(term->xsize * term->ysize * sizeof(wchar_t));
   term->dirty = malloc(term->xsize * term->ysize);
@@ -211,11 +211,11 @@ put_char (struct bogl_term *term, int x, int y, wchar_t wc, wchar_t *cchars,
 {
     char buf[MB_LEN_MAX];
     int j, k, r, w;
-
+    int garbage;
     if (bd)
         fg += 8;
 
-    wctomb(0, 0);
+    garbage = wctomb(0, 0);
     if ((k = wctomb(buf, wc)) == -1)
         return;
 
@@ -226,7 +226,7 @@ put_char (struct bogl_term *term, int x, int y, wchar_t wc, wchar_t *cchars,
         if (cchars)
             for (j = 0; cchars[j]; j++)
             {
-                wctomb(0, 0);
+                garbage = wctomb(0, 0);
                 if ((k = wctomb(buf, cchars[j])) != -1)
                 bogl_text(XPOS(x), YPOS(y), buf, k, fg, -1, ul, term->font);
             }
@@ -320,7 +320,7 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
 {
     wchar_t wc;
     size_t k, kk;
-    int i, j, w, txp, f, b, use_acs, x, y;
+    int i, j, w, txp, f, b, use_acs, x, y, garbage;
     char buf[MB_LEN_MAX];
 
     k = 0;
@@ -707,7 +707,7 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
                 continue;
         }
 
-        wctomb (0, 0);
+        garbage = wctomb (0, 0);
         kk = wctomb (buf, wc);
         if (kk == -1)           /* impossible */
             continue;

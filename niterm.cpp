@@ -245,14 +245,14 @@ int main(int argc, char *argv[])
   struct timeval tv;
   int ptyfd, ttyfd;
   struct bogl_font *font;
-  char *locale = "", *command = NULL;
+  char *locale, *command = NULL;
   char **command_args;
   int i;
   char o = ' ';
   int pending = 0;
   int login_shell = 0;
 
-  font_name = "/usr/share/niterm/unifont.bgf"; // FIXME: This is stupid
+  font_name = (char *)"/usr/share/niterm/unifont.bgf"; // FIXME: This is stupid
   
   // XXX: Replace this with a better method
   for (i = 1 ; i < argc ; ++i) {
@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
   //      that we're in C++...
   if (login_shell) {
     command_args = (char **)xmalloc(2 * sizeof *command_args);
-    command_args[0] = "login";
+    command_args[0] = (char*)"login";
     command_args[1] = NULL;
   } else if (command) {
     command_args = (char **)xmalloc(2 * sizeof *command_args);
@@ -353,7 +353,7 @@ int main(int argc, char *argv[])
     command_args[argc - (i + 1)] = NULL;
   } else {
     command_args = (char **)xmalloc(2 * sizeof *command_args);
-    command_args[0] = "/bin/sh";
+    command_args[0] = (char*)"/bin/bash";
     command_args[1] = NULL;
   }
   spawn_shell(ptyfd, ttyfd, command_args);

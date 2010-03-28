@@ -9,6 +9,8 @@
 #include <bogl/bogl.h>
 #include <bogl/bogl-font.h>
 
+int bogl_cloexec(int);
+
 struct bogl_font *bogl_mmap_font(char *file)
 {
   int fd;
