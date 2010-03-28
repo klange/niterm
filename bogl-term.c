@@ -378,20 +378,8 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
 
         if (wc == 9)
         {                       /* ht=^I */
-            int target;
-            /* I'm not sure whether this way of going over the right margin
-               is correct, so I don't declare this capability in terminfo. */
-            target = (term->xpos / 8) * 8 + 8;
-            while(term->xpos < target)
-            {
-	              if (term->xpos >= term->xsize)
-	              {
-	                  term->xpos = 0;
-	                  cursor_down (term);
-	                  break;
-	              }
-	              bogl_term_out(term, " ", 1);
-	          }
+            if (term->xpos < term->xsize)
+                ++term->xpos;
             term->state = 0;
             continue;
         }
@@ -410,17 +398,17 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
             continue;
         }
 
-	      if (wc == 14)
-	      {
-	          term->acs = 1;
-	          continue;
-	      }
+        if (wc == 14)
+        {
+          term->acs = 1;
+          continue;
+        }
 
-	      if (wc == 15)
-	      {
-	          term->acs = 0;
-	          continue;
-	      }
+        if (wc == 15)
+        {
+          term->acs = 0;
+          continue;
+        }
 
         if (wc == 27)
         {                       /* ESC = \E */
@@ -434,6 +422,8 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
             {
                 term->state = 1;
                 term->arg[0] = 0;
+                for (i=1;i<10;i++)
+                    term->arg[i] = -1;
                 continue;
             }
             /* `ri' capability: Scroll up one line.  */
@@ -484,7 +474,7 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
             if (wc == ';')
             {
                 if (term->state > sizeof (term->arg) / sizeof (int))
-                    continue;
+                     continue;
                 if (term->state < sizeof (term->arg) / sizeof (int))
                     term->arg[term->state] = 0;
 
@@ -620,28 +610,33 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
 
             if (wc == 'm')
             {                   /* setab=\E[4%p1%dm, setaf=\E[3%p1%dm */
-                if (term->arg[0] == 4 || term->arg[0] == 24)
-                    term->ul = term->arg[0] == 4;
-                else if (30 <= term->arg[0] && term->arg[0] < 38)
-                    term->fg = term->arg[0] - 30;
-                else if (40 <= term->arg[0] && term->arg[0] < 48)
-                    term->bg = term->arg[0] - 40;
-                else if (term->arg[0] == 39)
-                    term->fg = term->def_fg;
-                else if (term->arg[0] == 49)
-                    term->bg = term->def_bg;
-                else if (term->arg[0] == 7)
-                    term->rev = 1;
-                else if (term->arg[0] == 27)
-                    term->rev = 0;
-                else if (term->arg[0] == 1)
-                    term->bold = 1;
-                else if (term->arg[0] == 0)
-                {
-                    term->rev = 0;
-                    term->bold = 0;
-                    term->fg = term->def_fg;
-                    term->bg = term->def_bg;
+                for (i=0; i<10; i++) {
+                    printf("%i\n", term->arg[i]);
+                    //if (term->arg[i] == -1)
+                    //    break;
+                    if (term->arg[i] == 4 || term->arg[i] == 24)
+                        term->ul = term->arg[i] == 4;
+                    else if (30 <= term->arg[i] && term->arg[i] < 38)
+                        term->fg = term->arg[i] - 30;
+                    else if (40 <= term->arg[i] && term->arg[i] < 48)
+                        term->bg = term->arg[i] - 40;
+                    else if (term->arg[i] == 39)
+                        term->fg = term->def_fg;
+                    else if (term->arg[i] == 49)
+                        term->bg = term->def_bg;
+                    else if (term->arg[i] == 7)
+                        term->rev = 1;
+                    else if (term->arg[i] == 27)
+                        term->rev = 0;
+                    else if (term->arg[i] == 1)
+                        term->bold = 1;
+                    else if (term->arg[i] == 0)
+                    {
+                        term->rev = 0;
+                        term->bold = 0;
+                        term->fg = term->def_fg;
+                        term->bg = term->def_bg;
+                    }
                 }
 
                 term->state = 0;

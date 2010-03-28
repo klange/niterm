@@ -17,7 +17,7 @@ struct bogl_term {
   int state;
   int cur_visible;
   int xp, yp;
-  int arg[2];
+  int arg[10];
   mbstate_t ps;
   wchar_t *screen; /* character in cell, or 0 */
   int *screenfg, *screenbg, *screenul, *screenbd; /* colours in cell */
