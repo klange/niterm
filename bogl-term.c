@@ -611,9 +611,6 @@ bogl_term_out (struct bogl_term *term, char *s, int n)
             if (wc == 'm')
             {                   /* setab=\E[4%p1%dm, setaf=\E[3%p1%dm */
                 for (i=0; i<10; i++) {
-                    printf("%i\n", term->arg[i]);
-                    //if (term->arg[i] == -1)
-                    //    break;
                     if (term->arg[i] == 4 || term->arg[i] == 24)
                         term->ul = term->arg[i] == 4;
                     else if (30 <= term->arg[i] && term->arg[i] < 38)
