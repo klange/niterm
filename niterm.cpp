@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
   struct timeval tv;
   int ptyfd, ttyfd;
   struct bogl_font *font;
-  char *locale, *command = NULL;
+  char *locale = (char *)"", *command = NULL;
   char **command_args;
   int i;
   char o = ' ';
