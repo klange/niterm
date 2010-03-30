@@ -204,7 +204,7 @@ void set_window_size(int ttyfd, int x, int y)
   win.ws_row = y;
   win.ws_col = x;
   win.ws_xpixel = 0;
-  win.ws_xpixel = 0;
+  win.ws_ypixel = 0;
   ioctl(ttyfd, TIOCSWINSZ, &win);
 }
 
@@ -306,7 +306,11 @@ int main(int argc, char *argv[])
   setlocale(LC_CTYPE, locale);
 
   if (font_name == NULL) {
-    fprintf(stderr, "Usage: %s -f font.bgf [ -l locale ] [ program ]\n", argv[0]);
+    fprintf(stderr, "Usage: %s [ -s ] [ -f font.bgf ] [ -l locale ] [ program ]\n", argv[0]);
+    fprintf(stderr, "   -s            Login shell (requires root)\n");
+    fprintf(stderr, "   -f font.bgf   Specify BOGL font to use (default is unifont.bgf)\n");
+    fprintf(stderr, "   -l locale     Specify a locale to use, instead of your default\n");
+    fprintf(stderr, "   program       Program to execute in shell (default is /bin/bash)\n");
     return 1;
   }
 
@@ -387,7 +391,7 @@ int main(int argc, char *argv[])
 
   anthy_context * ac; // Anthy context
   if (anthy_init()) { // Initialize anthy
-      printf("Failed to init anthy, could not create terminal!\n");
+      fprintf(stderr, "Failed to init anthy, could not create terminal!\n");
       exit(1);
   }
   anthy_set_personality("");  // Set default `personality`
@@ -460,7 +464,7 @@ int main(int argc, char *argv[])
               break; // Do not collect any more characters from the input
             } else { // Disable the IME
               if (l > 0) { // Commit if necessary
-                for (ret = 0; ret < l + 1; ret++) { 
+                for (ret = 0; ret < l + 1; ret++) {
                   int outsize = sprintf(buf, "%s", (char *)ime_buf[ret].c_str());
                   write(ptyfd, buf, outsize);
                   ime_buf[ret] = "";
@@ -474,7 +478,7 @@ int main(int argc, char *argv[])
           } else if (ime_mode > 0 && (int)ch == 13) { // Return
             int outsize = 0;
             if (l > 0) { // Commit
-              for (ret = 0; ret < l + 1; ret++) { 
+              for (ret = 0; ret < l + 1; ret++) {
                 outsize = sprintf(buf, "%s", (char *)ime_buf[ret].c_str());
                 write(ptyfd, buf, outsize);
                 ime_buf[ret] = "";
@@ -644,7 +648,7 @@ int main(int argc, char *argv[])
             bogl_term_out(term, tbuf, sbuf);
           }
         }
-        // Clear if the rest of the line if needed
+        // Clear the rest of the line if needed
         if (clear_screen) {
           sbuf = sprintf(tbuf, "%c[K", 27);
           bogl_term_out(term, tbuf, sbuf);
@@ -657,7 +661,7 @@ int main(int argc, char *argv[])
           // Display candidates, spaced
           sbuf = sprintf(tbuf, "%c[B", 27);
           bogl_term_out(term, tbuf, sbuf);
-          // Print canddiates
+          // Print candidates
           for (int k = ime_cand_ind[ime_index]; k < ime_cand_ind[ime_index] + 5 && k < ime_cand_count[ime_index]; k++) {
             sbuf = sprintf(tbuf, "%s ", ime_candidates[ime_index][k].c_str());
             bogl_term_out(term, tbuf, sbuf);
