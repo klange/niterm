@@ -33,7 +33,7 @@ force:
 install: all
 	@$(ECHO) -e "\033[1;32mInstalling...\033[0m"
 	@install -m755 niterm $(DESTDIR)/usr/bin
-	@chmdo u+s $(DESTDIR)/usr/bin/niterm
+	@chmod u+s $(DESTDIR)/usr/bin/niterm
 	@install -m644 niterm.1 $(DESTDIR)/usr/share/man/man1
 	@install -d $(DESTDIR)/usr/share/terminfo
 	@tic -o$(DESTDIR)/usr/share/terminfo niterm.ti
