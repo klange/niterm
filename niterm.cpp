@@ -210,6 +210,7 @@ void set_window_size(int ttyfd, int x, int y)
 
 static char *font_name;
 static struct bogl_term *term;
+static struct bogl_term *overlay;
 
 void reload_font(int sig)
 {
@@ -330,9 +331,15 @@ int main(int argc, char *argv[])
   if (!term)
     exit(1);
 
+  // Create an overlay terminal
+  overlay = bogl_term_new(font);
+  overlay->overlay = 1;
+  overlay->cur_visible = 0;
+
   bogl_set_palette(0, 16, palette);
 
   bogl_term_redraw(term);
+  bogl_term_redraw(overlay);
 
   if (get_ptytty(&ptyfd, &ttyfd)) {
     perror("can't get a pty");
@@ -397,7 +404,7 @@ int main(int argc, char *argv[])
   anthy_set_personality("");  // Set default `personality`
   ac = anthy_create_context(); // Initialize context
   anthy_context_set_encoding(ac, ANTHY_UTF8_ENCODING); // Set for Unicode
-  
+
   for (;;) {
     fd_set fds;
     int max = 0;
@@ -423,6 +430,7 @@ int main(int argc, char *argv[])
     if (quit)
 	    break;
 
+    bogl_term_dirty(overlay);
     if (bogl_refresh) {
       /* Handle VT switching.  */
       if (bogl_refresh == 2) {
@@ -430,10 +438,11 @@ int main(int argc, char *argv[])
 	      /* This should not be necessary, but is, due to 2.6 kernel
 	         bugs in the vga16fb driver.  */
 	      bogl_set_palette(0, 16, palette);
-	    }
+	  }
 
       bogl_refresh = 0;
       bogl_term_redraw(term);
+      bogl_term_redraw(overlay);
     }
     if (ret == 0 || (ret < 0 && errno == EINTR))
     {
@@ -441,10 +450,10 @@ int main(int argc, char *argv[])
       {
       	pending = 0;
         bogl_term_redraw(term);
+        bogl_term_redraw(overlay);
       }
       continue;
     }
-
     if (ret < 0)
       perror("select");
     if (FD_ISSET(0, &fds)) {
@@ -630,45 +639,51 @@ int main(int argc, char *argv[])
       if (ime_mode) {
         // If the IME is enabled...
         char tbuf[1024];
+        // Align overlay to the input cursor
+        overlay->xpos = term->xpos;
+        overlay->ypos = term->ypos;
         // Save cursor, enable underline
         int sbuf = sprintf(tbuf, "%c[s%c[4m", 27, 27);
-        bogl_term_out(term, tbuf, sbuf);
+        bogl_term_out(overlay, tbuf, sbuf);
         // Print out the IME buffer
         for (ret = 0; ret < l + 1; ret++) {
           if (ime_mode == 2 && ime_index == ret) {
             // Reverse video for section selection
             sbuf = sprintf(tbuf, "%c[7m", 27);
-            bogl_term_out(term, tbuf, sbuf);
+            bogl_term_out(overlay, tbuf, sbuf);
           }
           sbuf = sprintf(tbuf, "%s", (char *)ime_buf[ret].c_str());
-          bogl_term_out(term, tbuf, sbuf);
+          bogl_term_out(overlay, tbuf, sbuf);
           if (ime_mode == 2 && ime_index == ret) {
             // Unreverse video
             sbuf = sprintf(tbuf, "%c[27m", 27);
-            bogl_term_out(term, tbuf, sbuf);
+            bogl_term_out(overlay, tbuf, sbuf);
           }
         }
         // Clear the rest of the line if needed
-        if (clear_screen) {
-          sbuf = sprintf(tbuf, "%c[K", 27);
-          bogl_term_out(term, tbuf, sbuf);
-          clear_screen = 0;
-        }
+        sbuf = sprintf(tbuf, "%c[K", 27);
+        bogl_term_out(overlay, tbuf, sbuf);
         // Disable underline and restore the cursor
         sbuf = sprintf(tbuf, "%c[24m%c[u", 27, 27);
-        bogl_term_out(term, tbuf, sbuf);
+        bogl_term_out(overlay, tbuf, sbuf);
         if (ime_mode == 2) {
           // Display candidates, spaced
           sbuf = sprintf(tbuf, "%c[B", 27);
-          bogl_term_out(term, tbuf, sbuf);
+          bogl_term_out(overlay, tbuf, sbuf);
           // Print candidates
           for (int k = ime_cand_ind[ime_index]; k < ime_cand_ind[ime_index] + 5 && k < ime_cand_count[ime_index]; k++) {
             sbuf = sprintf(tbuf, "%s ", ime_candidates[ime_index][k].c_str());
-            bogl_term_out(term, tbuf, sbuf);
+            bogl_term_out(overlay, tbuf, sbuf);
           }
           sbuf = sprintf(tbuf, "%c[K%c[u", 27, 27);
-          bogl_term_out(term, tbuf, sbuf);
+          bogl_term_out(overlay, tbuf, sbuf);
+        } else {
+          sbuf = sprintf(tbuf, "%c[B", 27);
+          bogl_term_out(overlay, tbuf, sbuf);
+          sbuf = sprintf(tbuf, "%c[K", 27);
+          bogl_term_out(overlay, tbuf, sbuf);
         }
+        bogl_term_dirty(term);
         ret = 0;
         pending = 1; // Force update
       }

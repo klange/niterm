@@ -27,6 +27,7 @@ struct bogl_term {
   int acs;
   int xsave;
   int ysave;
+  int overlay;
 };
 
 struct bogl_term *bogl_term_new(struct bogl_font *font);

@@ -88,6 +88,8 @@ struct bogl_term *bogl_term_new(struct bogl_font *font)
 
   term->xsave = 0;
   term->ysave = 0;
+  
+  term->overlay = 0;
 
   return term;
 }
@@ -215,8 +217,12 @@ put_char (struct bogl_term *term, int x, int y, wchar_t wc, wchar_t *cchars,
     if (bd)
         fg += 8;
 
+
     garbage = wctomb(0, 0);
     if ((k = wctomb(buf, wc)) == -1)
+        return;
+
+    if (term->overlay && wc == ' ')
         return;
 
     if (bogl_in_font (term->font, wc))
@@ -227,6 +233,7 @@ put_char (struct bogl_term *term, int x, int y, wchar_t wc, wchar_t *cchars,
             for (j = 0; cchars[j]; j++)
             {
                 garbage = wctomb(0, 0);
+                // XXX: This is not a good way to get the width!!
                 if ((k = wctomb(buf, cchars[j])) != -1)
                 bogl_text(XPOS(x), YPOS(y), buf, k, fg, -1, ul, term->font);
             }
